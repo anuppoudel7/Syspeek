@@ -1,14 +1,31 @@
 use crate::collectors::{
-    cpu::CpuInfo,
-    disk::DiskInfo,
-    memory::MemoryInfo,
-    system::SystemInfo,
+    cpu::CpuInfo, disk::DiskInfo, memory::MemoryInfo, network::NetworkInterface,
+    services::ServiceInfo, system::SystemInfo,
 };
 
 use super::{
     format::{format_bytes, format_uptime},
     logo::LOGO,
 };
+
+pub fn print_network_info(interfaces: &[NetworkInterface]) {
+    println!("Network Information");
+    println!("───────────────────");
+    for interface in interfaces {
+        println!();
+        println!("Interface {}", interface.name);
+        println!("State     {}", interface.state);
+        if let Some(mac) = &interface.mac {
+            println!("MAC       {}", mac);
+        }
+        for ipv4 in &interface.ipv4 {
+            println!("IPv4      {}", ipv4);
+        }
+        for ipv6 in &interface.ipv6 {
+            println!("IPv6      {}", ipv6);
+        }
+    }
+}
 
 pub fn print_system_info(system: &SystemInfo) {
     println!("System Information");
@@ -19,11 +36,7 @@ pub fn print_system_info(system: &SystemInfo) {
     println!("Uptime    {}", format_uptime(system.uptime));
 }
 
-pub fn print_hardware_info(
-    cpu: &CpuInfo,
-    memory: &MemoryInfo,
-    disks: &[DiskInfo],
-) {
+pub fn print_hardware_info(cpu: &CpuInfo, memory: &MemoryInfo, disks: &[DiskInfo]) {
     println!("Hardware Information");
     println!("────────────────────");
 
@@ -39,10 +52,7 @@ pub fn print_hardware_info(
         format_bytes(memory.total)
     );
 
-    println!(
-        "Available {}",
-        format_bytes(memory.available)
-    );
+    println!("Available {}", format_bytes(memory.available));
 
     println!(
         "Swap      {} / {}",
@@ -63,12 +73,7 @@ pub fn print_hardware_info(
     }
 }
 
-pub fn print_system(
-    system: &SystemInfo,
-    cpu: &CpuInfo,
-    memory: &MemoryInfo,
-    disks: &[DiskInfo],
-) {
+pub fn print_system(system: &SystemInfo, cpu: &CpuInfo, memory: &MemoryInfo, disks: &[DiskInfo]) {
     let mut info = Vec::new();
 
     info.push(String::from("syspeek"));
@@ -92,10 +97,7 @@ pub fn print_system(
         format_bytes(memory.total)
     ));
 
-    info.push(format!(
-        "Available {}",
-        format_bytes(memory.available)
-    ));
+    info.push(format!("Available {}", format_bytes(memory.available)));
 
     info.push(format!(
         "Swap      {} / {}",
@@ -138,6 +140,37 @@ pub fn print_system(
             );
         } else {
             println!("{}", text);
+        }
+    }
+}
+
+pub fn print_services_info(services: &[ServiceInfo]) {
+    let running = services
+        .iter()
+        .filter(|service| service.is_running())
+        .count();
+
+    let active = services
+        .iter()
+        .filter(|service| service.active_state == "active")
+        .count();
+
+    let failed = services.iter().filter(|service| service.failed).count();
+
+    println!("System Services");
+    println!("───────────────");
+    println!();
+    println!("Active      {}", active);
+    println!("Running     {}", running);
+    println!("Failed      {}", failed);
+
+    if failed > 0 {
+        println!();
+        println!("Failed Services");
+        println!("───────────────");
+
+        for service in services.iter().filter(|service| service.failed) {
+            println!("{}", service.name);
         }
     }
 }

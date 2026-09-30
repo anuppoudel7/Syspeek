@@ -28,3 +28,25 @@ pub fn format_uptime(seconds: u64) -> String {
         format!("{}s", seconds)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_bytes() {
+        assert_eq!(format_bytes(0), "0.00 B");
+        assert_eq!(format_bytes(1024), "1.00 KiB");
+        assert_eq!(format_bytes(1024 * 1024), "1.00 MiB");
+        assert_eq!(format_bytes(1024 * 1024 * 1024), "1.00 GiB");
+    }
+
+    #[test]
+    fn test_format_uptime() {
+        assert_eq!(format_uptime(30), "30s");
+        assert_eq!(format_uptime(90), "1m 30s");
+        assert_eq!(format_uptime(3_600), "1h 0m");
+        assert_eq!(format_uptime(86_400), "1d 0h 0m");
+        assert_eq!(format_uptime(90_061), "1d 1h 1m");
+    }
+}

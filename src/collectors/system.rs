@@ -14,3 +14,16 @@ pub fn collect() -> SystemInfo {
         uptime: System::uptime(),
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_collect_system() {
+        let system = collect();
+
+        assert!(!system.os.is_empty());
+        assert!(!system.kernel.is_empty());
+        assert!(!system.hostname.is_empty());
+    }
+}
