@@ -5,7 +5,10 @@ use crate::collectors::{
     system::SystemInfo,
 };
 
-use super::format::{format_bytes, format_uptime};
+use super::{
+    format::{format_bytes, format_uptime},
+    logo::LOGO,
+};
 
 pub fn print_system(
     system: &SystemInfo,
@@ -13,41 +16,76 @@ pub fn print_system(
     memory: &MemoryInfo,
     disks: &[DiskInfo],
 ) {
-    println!("syspeek");
-    println!("--------");
+    let mut info = Vec::new();
 
-    println!("OS:       {}", system.os);
-    println!("Kernel:   {}", system.kernel);
-    println!("Hostname: {}", system.hostname);
-    println!("Uptime:   {}", format_uptime(system.uptime));
-    println!();
+    info.push(String::from("syspeek"));
+    info.push(String::from("────────────────────────"));
+    info.push(format!("OS        {}", system.os));
+    info.push(format!("Kernel    {}", system.kernel));
+    info.push(format!("Host      {}", system.hostname));
+    info.push(format!("Uptime    {}", format_uptime(system.uptime)));
 
-    println!("CPU:      {}", cpu.model);
-    println!("Cores:    {}", cpu.cores);
-    println!("Threads:  {}", cpu.threads);
+    info.push(String::new());
 
-    println!();
+    info.push(format!("CPU       {}", cpu.model));
+    info.push(format!("Cores     {}", cpu.cores));
+    info.push(format!("Threads   {}", cpu.threads));
 
-    println!("Memory:");
-    println!("  Total:     {}", format_bytes(memory.total));
-    println!("  Used:      {}", format_bytes(memory.used));
-    println!("  Available: {}", format_bytes(memory.available));
-    println!(
-        "  Swap:      {} / {}",
+    info.push(String::new());
+
+    info.push(format!(
+        "Memory    {} / {}",
+        format_bytes(memory.used),
+        format_bytes(memory.total)
+    ));
+
+    info.push(format!(
+        "Available {}",
+        format_bytes(memory.available)
+    ));
+
+    info.push(format!(
+        "Swap      {} / {}",
         format_bytes(memory.swap_used),
         format_bytes(memory.swap_total)
-    );
+    ));
 
-    println!();
+    info.push(String::new());
 
-    println!("Disk:");
     for disk in disks {
-    println!(
-        "  {} ({})  {} / {}",
-        disk.mount_point,
-        disk.name,
-        format_bytes(disk.available),
-        format_bytes(disk.total)
-    );
+        info.push(format!(
+            "Disk {}   {} / {} ({})",
+            disk.mount_point,
+            format_bytes(disk.available),
+            format_bytes(disk.total),
+            disk.name
+        ));
     }
+
+    let logo_width = LOGO
+        .iter()
+        .map(|line| line.chars().count())
+        .max()
+        .unwrap_or(0);
+
+    let gap = 4;
+
+    let height = LOGO.len().max(info.len());
+
+for i in 0..height {
+    let logo = LOGO.get(i).copied().unwrap_or("");
+    let text = info.get(i).map(String::as_str).unwrap_or("");
+
+    if i < LOGO.len() {
+        println!(
+            "{:<width$}{}{}",
+            logo,
+            " ".repeat(gap),
+            text,
+            width = logo_width
+        );
+    } else {
+        println!("{}", text);
+    }
+}
 }
