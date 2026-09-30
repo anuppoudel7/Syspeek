@@ -6,5 +6,6 @@
 Thumbs.db
 .env
 .env.*
+*.deb
 *.pkg.tar.zst
 *.tar.gz

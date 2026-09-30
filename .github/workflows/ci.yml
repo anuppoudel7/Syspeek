@@ -11,7 +11,7 @@ on:
 jobs:
   format:
     name: Check Formatting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -28,7 +28,7 @@ jobs:
   check:
     name: Check Compilation
     needs: format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -43,7 +43,7 @@ jobs:
   clippy:
     name: Run Clippy
     needs: check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -60,7 +60,7 @@ jobs:
   test:
     name: Run Tests
     needs: clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -75,7 +75,7 @@ jobs:
   build:
     name: Build Release
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -86,3 +86,32 @@ jobs:
 
       - name: Build release binary
         run: cargo build --release --locked
+
+  package-deb:
+    name: Build Debian Package
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dpkg
+        run: sudo apt-get update && sudo apt-get install -y dpkg-dev
+
+      - name: Build Debian package
+        run: chmod +x scripts/build-deb.sh && ./scripts/build-deb.sh
+
+      - name: Verify Debian package
+        run: |
+          dpkg-deb --info syspeek_0.1.0-1_amd64.deb
+          dpkg-deb --contents syspeek_0.1.0-1_amd64.deb
+
+      - name: Upload Debian package
+        uses: actions/upload-artifact@v4
+        with:
+          name: syspeek-deb
+          path: syspeek_0.1.0-1_amd64.deb
