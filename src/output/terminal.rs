@@ -10,6 +10,59 @@ use super::{
     logo::LOGO,
 };
 
+pub fn print_system_info(system: &SystemInfo) {
+    println!("System Information");
+    println!("──────────────────");
+    println!("OS        {}", system.os);
+    println!("Kernel    {}", system.kernel);
+    println!("Host      {}", system.hostname);
+    println!("Uptime    {}", format_uptime(system.uptime));
+}
+
+pub fn print_hardware_info(
+    cpu: &CpuInfo,
+    memory: &MemoryInfo,
+    disks: &[DiskInfo],
+) {
+    println!("Hardware Information");
+    println!("────────────────────");
+
+    println!();
+    println!("CPU       {}", cpu.model);
+    println!("Cores     {}", cpu.cores);
+    println!("Threads   {}", cpu.threads);
+
+    println!();
+    println!(
+        "Memory    {} / {}",
+        format_bytes(memory.used),
+        format_bytes(memory.total)
+    );
+
+    println!(
+        "Available {}",
+        format_bytes(memory.available)
+    );
+
+    println!(
+        "Swap      {} / {}",
+        format_bytes(memory.swap_used),
+        format_bytes(memory.swap_total)
+    );
+
+    println!();
+
+    for disk in disks {
+        println!(
+            "Disk {}   {} / {} ({})",
+            disk.mount_point,
+            format_bytes(disk.available),
+            format_bytes(disk.total),
+            disk.name
+        );
+    }
+}
+
 pub fn print_system(
     system: &SystemInfo,
     cpu: &CpuInfo,
@@ -69,23 +122,22 @@ pub fn print_system(
         .unwrap_or(0);
 
     let gap = 4;
-
     let height = LOGO.len().max(info.len());
 
-for i in 0..height {
-    let logo = LOGO.get(i).copied().unwrap_or("");
-    let text = info.get(i).map(String::as_str).unwrap_or("");
+    for i in 0..height {
+        let logo = LOGO.get(i).copied().unwrap_or("");
+        let text = info.get(i).map(String::as_str).unwrap_or("");
 
-    if i < LOGO.len() {
-        println!(
-            "{:<width$}{}{}",
-            logo,
-            " ".repeat(gap),
-            text,
-            width = logo_width
-        );
-    } else {
-        println!("{}", text);
+        if i < LOGO.len() {
+            println!(
+                "{:<width$}{}{}",
+                logo,
+                " ".repeat(gap),
+                text,
+                width = logo_width
+            );
+        } else {
+            println!("{}", text);
+        }
     }
-}
 }
