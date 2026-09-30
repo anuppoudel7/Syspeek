@@ -5,6 +5,8 @@ use crate::collectors::{
     system::SystemInfo,
 };
 
+use super::format::{format_bytes, format_uptime};
+
 pub fn print_system(
     system: &SystemInfo,
     cpu: &CpuInfo,
@@ -17,8 +19,7 @@ pub fn print_system(
     println!("OS:       {}", system.os);
     println!("Kernel:   {}", system.kernel);
     println!("Hostname: {}", system.hostname);
-    println!("Uptime:   {} seconds", system.uptime);
-
+    println!("Uptime:   {}", format_uptime(system.uptime));
     println!();
 
     println!("CPU:      {}", cpu.model);
@@ -28,26 +29,25 @@ pub fn print_system(
     println!();
 
     println!("Memory:");
-    println!("  Total:     {} bytes", memory.total);
-    println!("  Used:      {} bytes", memory.used);
-    println!("  Available: {} bytes", memory.available);
+    println!("  Total:     {}", format_bytes(memory.total));
+    println!("  Used:      {}", format_bytes(memory.used));
+    println!("  Available: {}", format_bytes(memory.available));
     println!(
-        "  Swap:      {} / {} bytes",
-        memory.swap_used,
-        memory.swap_total
+        "  Swap:      {} / {}",
+        format_bytes(memory.swap_used),
+        format_bytes(memory.swap_total)
     );
 
     println!();
 
     println!("Disk:");
-
     for disk in disks {
-        println!(
-            "  {} ({})  {} / {} bytes",
-            disk.mount_point,
-            disk.name,
-            disk.available,
-            disk.total
-        );
+    println!(
+        "  {} ({})  {} / {}",
+        disk.mount_point,
+        disk.name,
+        format_bytes(disk.available),
+        format_bytes(disk.total)
+    );
     }
 }
