@@ -1,7 +1,10 @@
 /target/
+/pkg/
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
 .env
 .env.*
+*.pkg.tar.zst
+*.tar.gz
