@@ -5,7 +5,7 @@ mod output;
 use clap::Parser;
 
 use cli::{Cli, Commands};
-use collectors::{cpu, disk, docker, memory, network, services, system};
+use collectors::{cpu, development, disk, docker, memory, network, services, system};
 use output::terminal;
 
 fn main() {
@@ -71,6 +71,11 @@ fn main() {
                 eprintln!("Error: failed to collect Docker information: {error:#}");
             }
         },
+
+        Some(Commands::Development) => {
+            let development_info = development::collect();
+            terminal::print_development_info(&development_info);
+        }
 
         Some(command) => {
             println!("{command:?} command is coming soon.");

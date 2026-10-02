@@ -1,6 +1,6 @@
 use crate::collectors::{
-    cpu::CpuInfo, disk::DiskInfo, docker::DockerInfo, memory::MemoryInfo,
-    network::NetworkInterface, services::ServiceInfo, system::SystemInfo,
+    cpu::CpuInfo, development::DevelopmentInfo, disk::DiskInfo, docker::DockerInfo,
+    memory::MemoryInfo, network::NetworkInterface, services::ServiceInfo, system::SystemInfo,
 };
 
 use super::{
@@ -224,6 +224,25 @@ pub fn print_docker_info(docker: &DockerInfo) {
         println!("{:<30} {:<15} SIZE", "REPOSITORY", "TAG");
         for image in &docker.images {
             println!("{:<30} {:<15} {}", image.repository, image.tag, image.size);
+        }
+    }
+}
+pub fn print_development_info(development: &DevelopmentInfo) {
+    println!("Development Environment");
+    println!("───────────────────────");
+
+    for tool in &development.tools {
+        println!();
+
+        println!("{}", tool.name);
+
+        match &tool.version {
+            Some(version) => {
+                println!("    Version     {}", version);
+            }
+            None => {
+                println!("    Status      Not installed");
+            }
         }
     }
 }
