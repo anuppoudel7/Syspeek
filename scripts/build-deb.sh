@@ -31,7 +31,7 @@ Architecture: ${ARCH}
 Maintainer: Anup Paudel
 Description: A fast and powerful Linux system information and diagnostics tool
  Syspeek is a Linux command-line utility for displaying system,
- hardware, network, and system service information.
+ hardware, network, Docker, development environment, and diagnostic information.
 EOF
 
 dpkg-deb --build --root-owner-group "$PACKAGE_DIR" "$OUTPUT"

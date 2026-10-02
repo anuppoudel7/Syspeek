@@ -107,8 +107,11 @@ jobs:
 
       - name: Verify Debian package
         run: |
-          dpkg-deb --info syspeek_0.1.0-1_amd64.deb
-          dpkg-deb --contents syspeek_0.1.0-1_amd64.deb
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
+          PACKAGE="syspeek_${VERSION}-1_amd64.deb"
+
+          dpkg-deb --info "$PACKAGE"
+          dpkg-deb --contents "$PACKAGE"
 
       - name: Upload Debian package
         uses: actions/upload-artifact@v4
