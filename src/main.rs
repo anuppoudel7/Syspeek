@@ -5,7 +5,7 @@ mod output;
 use clap::Parser;
 
 use cli::{Cli, Commands};
-use collectors::{cpu, development, disk, docker, memory, network, services, system};
+use collectors::{cpu, development, disk, docker, hardware, memory, network, services, system};
 use output::terminal;
 
 fn main() {
@@ -17,33 +17,14 @@ fn main() {
             terminal::print_system_info(&system_info);
         }
 
-        Some(Commands::Hardware) => {
-            let cpu_info = match cpu::collect() {
-                Ok(info) => info,
-                Err(error) => {
-                    eprintln!("Error: failed to collect CPU information: {error:#}");
-                    return;
-                }
-            };
-
-            let memory_info = match memory::collect() {
-                Ok(info) => info,
-                Err(error) => {
-                    eprintln!("Error: failed to collect memory information: {error:#}");
-                    return;
-                }
-            };
-
-            let disk_info = match disk::collect() {
-                Ok(info) => info,
-                Err(error) => {
-                    eprintln!("Error: failed to collect disk information: {error:#}");
-                    return;
-                }
-            };
-
-            terminal::print_hardware_info(&cpu_info, &memory_info, &disk_info);
-        }
+        Some(Commands::Hardware) => match hardware::collect() {
+            Ok(info) => {
+                terminal::print_hardware_info(&info);
+            }
+            Err(error) => {
+                eprintln!("Error: failed to collect hardware information: {error:#}");
+            }
+        },
 
         Some(Commands::Network) => match network::collect() {
             Ok(interfaces) => {

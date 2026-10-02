@@ -2,6 +2,8 @@ pub mod cpu;
 pub mod development;
 pub mod disk;
 pub mod docker;
+pub mod gpu;
+pub mod hardware;
 pub mod memory;
 pub mod network;
 pub mod services;
