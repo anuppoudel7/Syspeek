@@ -1,6 +1,7 @@
 use crate::collectors::{
     cpu::CpuInfo, development::DevelopmentInfo, disk::DiskInfo, docker::DockerInfo,
-    memory::MemoryInfo, network::NetworkInterface, services::ServiceInfo, system::SystemInfo,
+    hardware::HardwareInfo, memory::MemoryInfo, network::NetworkInterface, services::ServiceInfo,
+    system::SystemInfo,
 };
 
 use super::{
@@ -36,33 +37,62 @@ pub fn print_system_info(system: &SystemInfo) {
     println!("Uptime    {}", format_uptime(system.uptime));
 }
 
-pub fn print_hardware_info(cpu: &CpuInfo, memory: &MemoryInfo, disks: &[DiskInfo]) {
+pub fn print_hardware_info(hardware: &HardwareInfo) {
     println!("Hardware Information");
     println!("────────────────────");
 
     println!();
-    println!("CPU       {}", cpu.model);
-    println!("Cores     {}", cpu.cores);
-    println!("Threads   {}", cpu.threads);
+    println!("CPU       {}", hardware.cpu.model);
+    println!("Cores     {}", hardware.cpu.cores);
+    println!("Threads   {}", hardware.cpu.threads);
 
     println!();
+
+    if hardware.gpus.is_empty() {
+        println!("GPU       Not detected");
+    } else {
+        for (index, gpu) in hardware.gpus.iter().enumerate() {
+            let label = if hardware.gpus.len() == 1 {
+                "GPU".to_string()
+            } else {
+                format!("GPU {}", index + 1)
+            };
+
+            println!("{:<9}{}", label, gpu.name);
+
+            if let Some(vendor) = &gpu.vendor {
+                println!("{:<9}{}", "Vendor", vendor);
+            }
+
+            if let Some(device) = &gpu.device {
+                println!("{:<9}0x{}", "Device", device.trim_start_matches("0x"));
+            }
+
+            if index + 1 < hardware.gpus.len() {
+                println!();
+            }
+        }
+    }
+
+    println!();
+
     println!(
         "Memory    {} / {}",
-        format_bytes(memory.used),
-        format_bytes(memory.total)
+        format_bytes(hardware.memory.used),
+        format_bytes(hardware.memory.total)
     );
 
-    println!("Available {}", format_bytes(memory.available));
+    println!("Available {}", format_bytes(hardware.memory.available));
 
     println!(
         "Swap      {} / {}",
-        format_bytes(memory.swap_used),
-        format_bytes(memory.swap_total)
+        format_bytes(hardware.memory.swap_used),
+        format_bytes(hardware.memory.swap_total)
     );
 
     println!();
 
-    for disk in disks {
+    for disk in &hardware.disks {
         println!(
             "Disk {}   {} / {} ({})",
             disk.mount_point,
