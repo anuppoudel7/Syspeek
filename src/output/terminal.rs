@@ -1,11 +1,19 @@
 use crate::collectors::{
-    cpu::CpuInfo, disk::DiskInfo, memory::MemoryInfo, network::NetworkInterface,
-    services::ServiceInfo, system::SystemInfo,
+    cpu::CpuInfo,
+    development::DevelopmentInfo,
+    diagnostics::{DiagnosticResult, DiagnosticStatus},
+    disk::DiskInfo,
+    docker::DockerInfo,
+    hardware::HardwareInfo,
+    memory::MemoryInfo,
+    network::NetworkInterface,
+    services::ServiceInfo,
+    system::SystemInfo,
 };
 
 use super::{
     format::{format_bytes, format_uptime},
-    logo::LOGO,
+    logo::{LOGO, STATUS_CRITICAL, STATUS_OK, STATUS_WARNING},
 };
 
 pub fn print_network_info(interfaces: &[NetworkInterface]) {
@@ -36,33 +44,62 @@ pub fn print_system_info(system: &SystemInfo) {
     println!("Uptime    {}", format_uptime(system.uptime));
 }
 
-pub fn print_hardware_info(cpu: &CpuInfo, memory: &MemoryInfo, disks: &[DiskInfo]) {
+pub fn print_hardware_info(hardware: &HardwareInfo) {
     println!("Hardware Information");
     println!("────────────────────");
 
     println!();
-    println!("CPU       {}", cpu.model);
-    println!("Cores     {}", cpu.cores);
-    println!("Threads   {}", cpu.threads);
+    println!("CPU       {}", hardware.cpu.model);
+    println!("Cores     {}", hardware.cpu.cores);
+    println!("Threads   {}", hardware.cpu.threads);
 
     println!();
+
+    if hardware.gpus.is_empty() {
+        println!("GPU       Not detected");
+    } else {
+        for (index, gpu) in hardware.gpus.iter().enumerate() {
+            let label = if hardware.gpus.len() == 1 {
+                "GPU".to_string()
+            } else {
+                format!("GPU {}", index + 1)
+            };
+
+            println!("{:<9}{}", label, gpu.name);
+
+            if let Some(vendor) = &gpu.vendor {
+                println!("{:<9}{}", "Vendor", vendor);
+            }
+
+            if let Some(device) = &gpu.device {
+                println!("{:<9}0x{}", "Device", device.trim_start_matches("0x"));
+            }
+
+            if index + 1 < hardware.gpus.len() {
+                println!();
+            }
+        }
+    }
+
+    println!();
+
     println!(
         "Memory    {} / {}",
-        format_bytes(memory.used),
-        format_bytes(memory.total)
+        format_bytes(hardware.memory.used),
+        format_bytes(hardware.memory.total)
     );
 
-    println!("Available {}", format_bytes(memory.available));
+    println!("Available {}", format_bytes(hardware.memory.available));
 
     println!(
         "Swap      {} / {}",
-        format_bytes(memory.swap_used),
-        format_bytes(memory.swap_total)
+        format_bytes(hardware.memory.swap_used),
+        format_bytes(hardware.memory.swap_total)
     );
 
     println!();
 
-    for disk in disks {
+    for disk in &hardware.disks {
         println!(
             "Disk {}   {} / {} ({})",
             disk.mount_point,
@@ -173,4 +210,122 @@ pub fn print_services_info(services: &[ServiceInfo]) {
             println!("{}", service.name);
         }
     }
+}
+
+pub fn print_docker_info(docker: &DockerInfo) {
+    println!("Docker Information");
+    println!("──────────────────");
+
+    if !docker.installed {
+        println!();
+        println!("Status      Not installed");
+        return;
+    }
+
+    println!();
+    println!(
+        "Version     {}",
+        docker.version.as_deref().unwrap_or("Unknown")
+    );
+
+    if !docker.daemon_running {
+        println!("Daemon      Not running");
+        return;
+    }
+
+    println!("Daemon      Running");
+
+    println!();
+    println!("Containers");
+    println!("──────────");
+
+    if docker.containers.is_empty() {
+        println!("None");
+    } else {
+        println!("{:<20} {:<30} STATUS", "NAME", "IMAGE");
+        for container in &docker.containers {
+            println!(
+                "{:<20} {:<30} {}",
+                container.name, container.image, container.status
+            );
+        }
+    }
+
+    println!();
+    println!("Images");
+    println!("──────");
+
+    if docker.images.is_empty() {
+        println!("None");
+    } else {
+        println!("{:<30} {:<15} SIZE", "REPOSITORY", "TAG");
+        for image in &docker.images {
+            println!("{:<30} {:<15} {}", image.repository, image.tag, image.size);
+        }
+    }
+}
+
+pub fn print_development_info(development: &DevelopmentInfo) {
+    println!("Development Environment");
+    println!("───────────────────────");
+
+    for tool in &development.tools {
+        println!();
+
+        println!("{}", tool.name);
+
+        match &tool.version {
+            Some(version) => {
+                println!("    Version     {}", version);
+            }
+            None => {
+                println!("    Status      Not installed");
+            }
+        }
+    }
+}
+
+pub fn print_diagnostics(results: &[DiagnosticResult]) {
+    println!("Diagnostics");
+    println!("───────────");
+
+    if results.is_empty() {
+        println!();
+        println!("No diagnostic checks available");
+        return;
+    }
+
+    println!();
+
+    let mut ok = 0;
+    let mut warning = 0;
+    let mut critical = 0;
+
+    for result in results {
+        let (symbol, label) = match result.status {
+            DiagnosticStatus::Ok => {
+                ok += 1;
+                (STATUS_OK, "OK")
+            }
+            DiagnosticStatus::Warning => {
+                warning += 1;
+                (STATUS_WARNING, "WARNING")
+            }
+            DiagnosticStatus::Critical => {
+                critical += 1;
+                (STATUS_CRITICAL, "CRITICAL")
+            }
+        };
+
+        println!(
+            "{symbol} {:<20} {:<9} {}",
+            result.name, label, result.message
+        );
+    }
+
+    println!();
+    println!(
+        "Summary: {} OK, {} WARNING, {} CRITICAL",
+        ok, warning, critical
+    );
 }
