@@ -79,10 +79,11 @@ Displays:
 
 Running:
 
-```bash
+```text
 syspeek
 ```
 displays an overview similar to:
+```bash
 ███████╗██╗   ██╗███████╗██████╗ ███████╗███████╗██╗  ██╗    syspeek
 ██╔════╝╚██╗ ██╔╝██╔════╝██╔══██╗██╔════╝██╔════╝██║ ██╔╝    ────────────────────────
 ███████╗ ╚████╔╝ █████╗  ██████╔╝█████╗  █████╗  █████╔╝     OS        Linux
@@ -100,9 +101,11 @@ Swap      1.10 GiB / 3.73 GiB
 
 Disk /    4.34 GiB / 91.11 GiB
 Disk /home 208.37 GiB / 375.80 GiB
+```
 
 ## Architecture
 syspeek follows a simple separation-of-concerns architecture:
+```text
                  ┌──────────────┐
                  │   CLI Input  │
                  └──────┬───────┘
@@ -126,6 +129,7 @@ syspeek follows a simple separation-of-concerns architecture:
                  ┌──────────────┐
                  │    Output    │
                  └──────────────┘
+```
 
 The core design principle is:
 Collector → Data → Formatter → Renderer
@@ -145,6 +149,7 @@ system — operating system, kernel, hostname, and uptime
 The output layer is responsible for formatting collected data and presenting it in the terminal. This keeps system information collection independent from the presentation layer.
 
 ## Project Structure
+```text
 src/
 ├── cli.rs
 ├── main.rs
@@ -159,6 +164,7 @@ src/
     ├── format.rs
     ├── logo.rs
     └── terminal.rs
+```
 
 ## Tech Stack
 
