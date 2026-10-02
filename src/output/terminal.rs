@@ -1,6 +1,6 @@
 use crate::collectors::{
-    cpu::CpuInfo, disk::DiskInfo, memory::MemoryInfo, network::NetworkInterface,
-    services::ServiceInfo, system::SystemInfo,
+    cpu::CpuInfo, disk::DiskInfo, docker::DockerInfo, memory::MemoryInfo,
+    network::NetworkInterface, services::ServiceInfo, system::SystemInfo,
 };
 
 use super::{
@@ -171,6 +171,59 @@ pub fn print_services_info(services: &[ServiceInfo]) {
 
         for service in services.iter().filter(|service| service.failed) {
             println!("{}", service.name);
+        }
+    }
+}
+
+pub fn print_docker_info(docker: &DockerInfo) {
+    println!("Docker Information");
+    println!("──────────────────");
+
+    if !docker.installed {
+        println!();
+        println!("Status      Not installed");
+        return;
+    }
+
+    println!();
+    println!(
+        "Version     {}",
+        docker.version.as_deref().unwrap_or("Unknown")
+    );
+
+    if !docker.daemon_running {
+        println!("Daemon      Not running");
+        return;
+    }
+
+    println!("Daemon      Running");
+
+    println!();
+    println!("Containers");
+    println!("──────────");
+
+    if docker.containers.is_empty() {
+        println!("None");
+    } else {
+        println!("{:<20} {:<30} STATUS", "NAME", "IMAGE");
+        for container in &docker.containers {
+            println!(
+                "{:<20} {:<30} {}",
+                container.name, container.image, container.status
+            );
+        }
+    }
+
+    println!();
+    println!("Images");
+    println!("──────");
+
+    if docker.images.is_empty() {
+        println!("None");
+    } else {
+        println!("{:<30} {:<15} SIZE", "REPOSITORY", "TAG");
+        for image in &docker.images {
+            println!("{:<30} {:<15} {}", image.repository, image.tag, image.size);
         }
     }
 }

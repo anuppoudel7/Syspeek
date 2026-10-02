@@ -5,7 +5,7 @@ mod output;
 use clap::Parser;
 
 use cli::{Cli, Commands};
-use collectors::{cpu, disk, memory, network, services, system};
+use collectors::{cpu, disk, docker, memory, network, services, system};
 use output::terminal;
 
 fn main() {
@@ -60,6 +60,15 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("Error: failed to collect system services: {error:#}");
+            }
+        },
+
+        Some(Commands::Docker) => match docker::collect() {
+            Ok(docker_info) => {
+                terminal::print_docker_info(&docker_info);
+            }
+            Err(error) => {
+                eprintln!("Error: failed to collect Docker information: {error:#}");
             }
         },
 
