@@ -1,6 +1,13 @@
 use crate::collectors::{
-    cpu::CpuInfo, development::DevelopmentInfo, disk::DiskInfo, docker::DockerInfo,
-    hardware::HardwareInfo, memory::MemoryInfo, network::NetworkInterface, services::ServiceInfo,
+    cpu::CpuInfo,
+    development::DevelopmentInfo,
+    diagnostics::{DiagnosticResult, DiagnosticStatus},
+    disk::DiskInfo,
+    docker::DockerInfo,
+    hardware::HardwareInfo,
+    memory::MemoryInfo,
+    network::NetworkInterface,
+    services::ServiceInfo,
     system::SystemInfo,
 };
 
@@ -257,6 +264,7 @@ pub fn print_docker_info(docker: &DockerInfo) {
         }
     }
 }
+
 pub fn print_development_info(development: &DevelopmentInfo) {
     println!("Development Environment");
     println!("───────────────────────");
@@ -274,5 +282,30 @@ pub fn print_development_info(development: &DevelopmentInfo) {
                 println!("    Status      Not installed");
             }
         }
+    }
+}
+pub fn print_diagnostics(results: &[DiagnosticResult]) {
+    println!("Diagnostics");
+    println!("───────────");
+
+    if results.is_empty() {
+        println!();
+        println!("No diagnostic checks available");
+        return;
+    }
+
+    println!();
+
+    for result in results {
+        let (symbol, label) = match result.status {
+            DiagnosticStatus::Ok => ("✓", "OK"),
+            DiagnosticStatus::Warning => ("!", "WARNING"),
+            DiagnosticStatus::Critical => ("✗", "CRITICAL"),
+        };
+
+        println!(
+            "{symbol} {:<20} {:<9} {}",
+            result.name, label, result.message
+        );
     }
 }

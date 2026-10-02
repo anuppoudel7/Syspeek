@@ -5,7 +5,9 @@ mod output;
 use clap::Parser;
 
 use cli::{Cli, Commands};
-use collectors::{cpu, development, disk, docker, hardware, memory, network, services, system};
+use collectors::{
+    cpu, development, diagnostics, disk, docker, hardware, memory, network, services, system,
+};
 use output::terminal;
 
 fn main() {
@@ -56,6 +58,45 @@ fn main() {
         Some(Commands::Development) => {
             let development_info = development::collect();
             terminal::print_development_info(&development_info);
+        }
+
+        Some(Commands::Diagnose) => {
+            let memory_info = match memory::collect() {
+                Ok(info) => info,
+                Err(error) => {
+                    eprintln!("Error: failed to collect memory information: {error:#}");
+                    return;
+                }
+            };
+
+            let disk_info = match disk::collect() {
+                Ok(info) => info,
+                Err(error) => {
+                    eprintln!("Error: failed to collect disk information: {error:#}");
+                    return;
+                }
+            };
+
+            let docker_info = match docker::collect() {
+                Ok(info) => info,
+                Err(error) => {
+                    eprintln!("Error: failed to collect Docker information: {error:#}");
+                    return;
+                }
+            };
+
+            let service_info = match services::collect() {
+                Ok(info) => info,
+                Err(error) => {
+                    eprintln!("Error: failed to collect service information: {error:#}");
+                    return;
+                }
+            };
+
+            let results =
+                diagnostics::collect(&memory_info, &disk_info, &docker_info, &service_info);
+
+            terminal::print_diagnostics(&results);
         }
 
         Some(command) => {
