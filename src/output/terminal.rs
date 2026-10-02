@@ -13,7 +13,7 @@ use crate::collectors::{
 
 use super::{
     format::{format_bytes, format_uptime},
-    logo::LOGO,
+    logo::{LOGO, STATUS_CRITICAL, STATUS_OK, STATUS_WARNING},
 };
 
 pub fn print_network_info(interfaces: &[NetworkInterface]) {
@@ -284,6 +284,7 @@ pub fn print_development_info(development: &DevelopmentInfo) {
         }
     }
 }
+
 pub fn print_diagnostics(results: &[DiagnosticResult]) {
     println!("Diagnostics");
     println!("───────────");
@@ -296,11 +297,24 @@ pub fn print_diagnostics(results: &[DiagnosticResult]) {
 
     println!();
 
+    let mut ok = 0;
+    let mut warning = 0;
+    let mut critical = 0;
+
     for result in results {
         let (symbol, label) = match result.status {
-            DiagnosticStatus::Ok => ("✓", "OK"),
-            DiagnosticStatus::Warning => ("!", "WARNING"),
-            DiagnosticStatus::Critical => ("✗", "CRITICAL"),
+            DiagnosticStatus::Ok => {
+                ok += 1;
+                (STATUS_OK, "OK")
+            }
+            DiagnosticStatus::Warning => {
+                warning += 1;
+                (STATUS_WARNING, "WARNING")
+            }
+            DiagnosticStatus::Critical => {
+                critical += 1;
+                (STATUS_CRITICAL, "CRITICAL")
+            }
         };
 
         println!(
@@ -308,4 +322,10 @@ pub fn print_diagnostics(results: &[DiagnosticResult]) {
             result.name, label, result.message
         );
     }
+
+    println!();
+    println!(
+        "Summary: {} OK, {} WARNING, {} CRITICAL",
+        ok, warning, critical
+    );
 }

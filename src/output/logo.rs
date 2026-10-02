@@ -6,3 +6,6 @@ pub const LOGO: &[&str] = &[
     "███████║   ██║   ███████║██║     ███████╗███████╗██║  ██╗",
     "╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚══════╝╚══════╝╚═╝  ╚═╝",
 ];
+pub const STATUS_OK: &str = "✓";
+pub const STATUS_WARNING: &str = "!";
+pub const STATUS_CRITICAL: &str = "✗";
